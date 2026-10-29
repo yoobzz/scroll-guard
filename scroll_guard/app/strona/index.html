@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strażnik scrollowania</title>
+<style>
+  :root {
+    --tlo: #e8e4da; --tusz: #111; --przygaszony: #6d685e; --akcent: #111;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --gruby: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  html.scrolluje { --tlo: #d4231b; --tusz: #fff3ea; --przygaszony: #ffc3b4; --akcent: #fff3ea; }
+  html.kara { --tlo: #0c0c0c; --tusz: #f2efe8; --przygaszony: #8a867d; --akcent: #f2efe8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--tlo); color: var(--tusz); }
+  body { font: 16px/1.4 var(--gruby); transition: background .4s, color .4s; overflow-x: hidden; }
+
+  #pasek { position: fixed; top: 0; left: 0; height: 6px; background: var(--tusz); width: 0; transition: width .6s linear; z-index: 5; }
+
+  #slowo {
+    font: 900 clamp(36px, 13vw, 230px)/0.82 var(--gruby); letter-spacing: -0.045em;
+    text-transform: uppercase; margin: 0; padding: 28px 16px 0 2vw;
+  }
+  #slowo small { display: block; font: 600 clamp(14px, 1.6vw, 22px)/1.2 var(--mono); letter-spacing: 0; text-transform: none; margin-top: 18px; color: var(--przygaszony); }
+
+  #scena { display: grid; grid-template-columns: minmax(170px, 24vw) 1fr; gap: 0 3vw; padding: 0 2vw; margin-top: 22px; }
+  #licznik { font: 700 clamp(48px, 9vw, 150px)/0.9 var(--mono); letter-spacing: -0.06em; align-self: end; padding-bottom: 10px; }
+  #licznik span { display: block; font-size: 0.24em; letter-spacing: 0; color: var(--przygaszony); margin-top: 10px; }
+  #okno { position: relative; justify-self: end; width: min(100%, 1100px); border: 6px solid var(--tusz); background: #000; aspect-ratio: 16 / 9; }
+  #okno img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  #okno .opis { position: absolute; left: -6px; bottom: -34px; font: 13px var(--mono); color: var(--przygaszony); white-space: nowrap; }
+
+  #zdania { padding: 70px 2vw 30px; max-width: 1400px; }
+  .zdanie { font: 700 clamp(22px, 2.8vw, 40px)/1.5 var(--gruby); letter-spacing: -0.02em; margin: 0 0 18px; }
+  .wybor { display: inline-flex; flex-wrap: wrap; gap: 6px; vertical-align: middle; margin: 0 4px; }
+  .wybor button, #wiecej button {
+    font: 600 clamp(15px, 1.5vw, 20px)/1 var(--mono); padding: 9px 12px; border: 2px solid var(--tusz);
+    background: transparent; color: var(--tusz); cursor: pointer; border-radius: 0;
+  }
+  .wybor button.tak { background: var(--tusz); color: var(--tlo); }
+  .wybor input { width: 4.2em; font: 600 clamp(15px, 1.5vw, 20px)/1 var(--mono); padding: 8px; border: 2px dashed var(--tusz); background: transparent; color: var(--tusz); }
+  #zapis { font: 13px var(--mono); color: var(--przygaszony); min-height: 1.4em; }
+
+  #wiecej { margin: 30px 2vw 60px; border-top: 2px solid var(--tusz); padding-top: 14px; max-width: 1100px; }
+  #wiecej summary { font: 900 28px var(--gruby); letter-spacing: -0.02em; cursor: pointer; list-style: none; }
+  #wiecej summary::before { content: "+ "; }
+  #wiecej[open] summary::before { content: "– "; }
+  #wiecej label { display: block; margin: 18px 0 6px; font: 600 13px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--przygaszony); }
+  #wiecej input[type=text] { width: 100%; font: 16px var(--mono); padding: 10px; border: 2px solid var(--tusz); background: transparent; color: var(--tusz); }
+  #wiecej .rzad { display: flex; gap: 8px; }
+  #wiecej .rzad input { flex: 1; }
+  #diag { font: 13px/1.7 var(--mono); white-space: pre-wrap; margin-top: 20px; color: var(--przygaszony); }
+  #esp-info { font: 13px var(--mono); margin-top: 6px; }
+
+  @media (max-width: 760px) {
+    #slowo { font-size: 11.5vw; padding-left: 16px; }
+    #scena { grid-template-columns: 1fr; margin-top: 16px; padding: 0 16px; }
+    #zdania, #wiecej { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
+    #licznik { order: 2; padding-top: 44px; }
+    #okno { justify-self: stretch; }
+    #okno .opis { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<div id="pasek"></div>
+
+<h1 id="slowo">Łączę…<small id="podslowo">&nbsp;</small></h1>
+
+<div id="scena">
+  <div id="licznik">0:00<span>z 10:00</span></div>
+  <div id="okno"><img src="podglad.mjpg" alt="podgląd z kamery"><div class="opis" id="opis-okna"></div></div>
+</div>
+
+<section id="zdania">
+  <p class="zdanie">Wolno mi scrollować
+    <span class="wybor" data-pole="limit_s" data-mnoznik="60" data-wartosci="1,3,5,10,15,30,60"></span>
+    min bez przerwy.</p>
+  <p class="zdanie">Potem internet znika na
+    <span class="wybor" data-pole="kara_s" data-mnoznik="60" data-wartosci="5,10,15,30,60"></span>
+    min.</p>
+  <p class="zdanie">Licznik zeruje się po przerwie
+    <span class="wybor" data-pole="przerwa_s" data-mnoznik="1" data-wartosci="15,30,45,90,180"></span>
+    s.</p>
+  <p class="zdanie">Patrzę
+    <span class="wybor" data-pole="czulosc" data-etykiety="ostrozna:ostrożnie,normalna:normalnie,czula:czujnie"></span>
+    i
+    <span class="wybor" data-pole="czuwanie" data-etykiety="true:odcinam,false:tylko patrzę"></span>.</p>
+  <div id="zapis"></div>
+</section>
+
+<details id="wiecej">
+  <summary>Więcej</summary>
+  <label for="zrodlo">Kamera — adres RTSP (główny strumień, np. rtsp://user:hasło@192.168.0.20:554/stream1) albo „mac” = kamera MacBooka</label>
+  <div class="rzad"><input type="text" id="zrodlo" spellcheck="false" autocomplete="off"><button data-zapisz="zrodlo">Zapisz</button></div>
+  <label for="esp">ESP z przekaźnikiem — adres IP (puste = tryb próbny, nic nie odcina)</label>
+  <div class="rzad"><input type="text" id="esp" spellcheck="false" autocomplete="off" placeholder="np. 192.168.0.50"><button data-zapisz="esp">Zapisz</button></div>
+  <label for="esp_token">Klucz ESP (API_TOKEN z config.h; puste = bez klucza)</label>
+  <div class="rzad"><input type="text" id="esp_token" spellcheck="false" autocomplete="off"><button data-zapisz="esp_token">Zapisz</button></div>
+  <div id="esp-info"></div>
+  <label>Sprawdzenie przekaźnika</label>
+  <button id="test">Odetnij na 20 s (router wstaje potem 1–3 min)</button>
+  <div id="diag"></div>
+</details>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let ust = null;
+
+const mmss = (s) => {
+  s = Math.max(0, Math.round(s));
+  const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, r = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(r).padStart(2, "0");
+};
+
+async function zapisz(zmiany) {
+  $("#zapis").textContent = "zapisuję…";
+  try {
+    const r = await fetch("api/ustawienia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(zmiany) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.blad || r.status);
+    ust = d; rysujWybory();
+    $("#zapis").textContent = "zapisane";
+  } catch (e) { $("#zapis").textContent = "nie zapisano: " + e.message; }
+}
+
+function rysujWybory() {
+  document.querySelectorAll(".wybor").forEach((el) => {
+    const pole = el.dataset.pole, akt = ust[pole];
+    el.innerHTML = "";
+    if (el.dataset.etykiety) {
+      el.dataset.etykiety.split(",").forEach((p) => {
+        const [w, napis] = p.split(":");
+        const b = document.createElement("button");
+        b.textContent = napis;
+        if (String(akt) === w) b.className = "tak";
+        b.onclick = () => zapisz({ [pole]: w === "true" ? true : w === "false" ? false : w });
+        el.append(b);
+      });
+      return;
+    }
+    const mn = +el.dataset.mnoznik, wartosci = el.dataset.wartosci.split(",").map(Number);
+    let trafiony = false;
+    wartosci.forEach((w) => {
+      const b = document.createElement("button");
+      b.textContent = w;
+      if (akt === w * mn) { b.className = "tak"; trafiony = true; }
+      b.onclick = () => zapisz({ [pole]: w * mn });
+      el.append(b);
+    });
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.placeholder = "inne";
+    inp.title = "własna wartość, Enter zapisuje";
+    if (!trafiony) inp.value = +(akt / mn).toFixed(2);
+    inp.onkeydown = (e) => { if (e.key === "Enter" && inp.value) zapisz({ [pole]: Math.round(+inp.value * mn) }); };
+    inp.onchange = () => { if (inp.value) zapisz({ [pole]: Math.round(+inp.value * mn) }); };
+    el.append(inp);
+  });
+  if (document.activeElement !== $("#zrodlo")) $("#zrodlo").value = ust.zrodlo;
+  if (document.activeElement !== $("#esp")) $("#esp").value = ust.esp;
+  if (document.activeElement !== $("#esp_token")) $("#esp_token").value = ust.esp_token;
+}
+
+document.querySelectorAll("[data-zapisz]").forEach((b) => {
+  b.onclick = () => zapisz({ [b.dataset.zapisz]: $("#" + b.dataset.zapisz).value });
+});
+$("#test").onclick = async () => {
+  if (!confirm("Odciąć prąd routera na 20 sekund?")) return;
+  await fetch("api/test-odciecia", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+};
+
+function rysujStan(s) {
+  const pierwszy = !ust;
+  ust = s.ustawienia;
+  if (pierwszy) rysujWybory();
+  const kara = s.kara_zostalo_s > 0;
+  document.documentElement.className = kara ? "kara" : s.scrolluje ? "scrolluje" : "";
+  const slowo = kara ? "Internet odcięty" : s.scrolluje ? "Scrollujesz" : !s.obraz_ok ? "Nie widzę" : "Nie scrollujesz";
+  const pod = kara ? "wraca za " + mmss(s.kara_zostalo_s) + " (router potrzebuje jeszcze chwili, żeby wstać)"
+    : !s.obraz_ok ? s.kamera
+    : s.scrolluje ? "telefon w ręce — licznik idzie"
+    : s.seria_s > 0 ? "przerwa " + mmss(s.przerwa_s) + " z " + mmss(ust.przerwa_s) + " — potem licznik od zera"
+    : !ust.czuwanie ? "tylko patrzę, nic nie odcinam" : " ";
+  $("#slowo").firstChild.textContent = slowo;
+  $("#podslowo").textContent = pod;
+  $("#licznik").firstChild.textContent = mmss(s.seria_s);
+  $("#licznik span").textContent = "z " + mmss(ust.limit_s);
+  $("#pasek").style.width = kara ? "100%" : Math.min(100, (100 * s.seria_s) / ust.limit_s) + "%";
+  $("#opis-okna").textContent = s.obraz_ok && !kara
+    ?`osoby: ${s.osoby}   telefon: ${s.telefon === null ? "—" : s.telefon}   klatki z telefonem: ${Math.round(s.udzial * 100)}%`
+    : "";
+  const o = s.odciecie || {};
+  const e = o.esp || {};
+  const espStan = !ust.esp ? "" : e.online === undefined ? " (sprawdzam…)"
+    : !e.online ? " — nie odpowiada" : e.banned ? ` — internet odcięty, jeszcze ${mmss(e.remaining_s)}` : " — online";
+  $("#esp-info").textContent = (ust.esp ? "ESP: " + ust.esp + espStan : "ESP nie ustawione — tryb próbny")
+    + (o.co ? `   ostatnio: ${o.co} — ${o.wynik}` : "");
+  $("#diag").textContent = [
+    "kamera: " + s.kamera,
+    "analiza klatki: " + (s.analiza_ms ?? "—") + " ms",
+    "osoby: " + (s.powody.join(" | ") || "—"),
+    s.blad ? "błąd: " + s.blad : "",
+  ].filter(Boolean).join("\n");
+}
+
+async function petla() {
+  try {
+    const r = await fetch("api/stan", { cache: "no-store" });
+    rysujStan(await r.json());
+  } catch (e) {
+    $("#slowo").firstChild.textContent = "Brak serwera";
+    $("#podslowo").textContent = "uruchom start.command";
+  }
+  setTimeout(petla, 700);
+}
+petla();
+</script>
+</body>
+</html>

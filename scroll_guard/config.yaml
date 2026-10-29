@@ -1,0 +1,38 @@
+name: Scroll Guard
+version: "0.1.0"
+slug: scroll_guard
+description: >-
+  Watches an RTSP camera, notices when someone has been scrolling a phone
+  for too long and cuts the internet through an ESP32 relay.
+url: https://github.com/yoobzz/scroll-guard
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+ingress: true
+ingress_port: 8911
+panel_icon: mdi:cellphone-off
+panel_title: Scroll Guard
+homeassistant_api: true
+options:
+  rtsp_url: ""
+  esp_host: ""
+  esp_token: ""
+  limit_minutes: 10
+  ban_minutes: 15
+  break_seconds: 45
+  sensitivity: normal
+  enforce: true
+  model_size: light
+schema:
+  rtsp_url: password?
+  esp_host: str?
+  esp_token: password?
+  limit_minutes: int(1,240)
+  ban_minutes: int(1,240)
+  break_seconds: int(5,600)
+  sensitivity: list(cautious|normal|sensitive)
+  enforce: bool
+  model_size: list(light|full)

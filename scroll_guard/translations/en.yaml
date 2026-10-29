@@ -1,0 +1,31 @@
+configuration:
+  rtsp_url:
+    name: Camera RTSP URL
+    description: >-
+      Main (full resolution) stream of the room camera, e.g.
+      rtsp://user:password@192.168.0.20:554/stream1 for TP-Link Tapo.
+  esp_host:
+    name: ESP32 relay address
+    description: IP or host name of the relay board (e.g. scroll-guard.local). Empty = dry run, nothing is cut.
+  esp_token:
+    name: ESP32 key
+    description: Same value as API_TOKEN in the firmware config.h. Leave empty if you did not set one.
+  limit_minutes:
+    name: Scrolling limit (minutes)
+    description: How long someone may scroll without a break before the internet goes off.
+  ban_minutes:
+    name: Ban length (minutes)
+    description: How long the internet stays off. The router also needs 1-3 minutes to boot afterwards.
+  break_seconds:
+    name: Break that resets the counter (seconds)
+  sensitivity:
+    name: Sensitivity
+    description: cautious = fewer false alarms, sensitive = catches more, normal in between.
+  enforce:
+    name: Enforce
+    description: Off = only watch and count, never cut the internet.
+  model_size:
+    name: Model size
+    description: >-
+      light = yolo26n-pose + yolo26s, for mini PCs; full = yolo26m models, needs a fast CPU.
+      Each frame must be analysed in under about 4 s (shown under the preview).

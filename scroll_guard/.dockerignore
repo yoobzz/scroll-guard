@@ -1,0 +1,6 @@
+app/modele
+app/ustawienia.json
+app/ustawienia.tmp
+app/**/__pycache__
+app/tests
+app/.venv

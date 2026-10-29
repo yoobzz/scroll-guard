@@ -1,0 +1,15 @@
+# local settings: contain the camera's RTSP login and the ESP key
+scroll_guard/app/ustawienia.json
+scroll_guard/app/ustawienia.tmp
+# YOLO weights are downloaded automatically on first start (and are AGPL / Ultralytics-licensed)
+scroll_guard/app/modele/
+*.pt
+# firmware secrets (copy config.example.h -> config.h)
+firmware/**/config.h
+firmware/**/build/
+# python
+__pycache__/
+*.pyc
+.venv
+# macOS
+.DS_Store

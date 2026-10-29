@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" font-family="Helvetica Neue, Inter, Arial, sans-serif">
+  <title>Scroll Guard wiring: ESP32 DevKit, relay module and router DC power</title>
+  <rect width="1280" height="760" fill="#ffffff"/>
+
+  <!-- header -->
+  <text x="40" y="52" font-size="14" letter-spacing="5" fill="#7B5EA7">~||-_^+*.</text>
+  <text x="40" y="86" font-size="30" font-weight="500" fill="#000">scroll guard — wiring</text>
+  <text x="40" y="112" font-size="15" fill="#666">only the router's low-voltage DC line is switched. never switch mains.</text>
+
+  <!-- USB charger -->
+  <rect x="40" y="300" width="150" height="84" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="115" y="334" font-size="15" text-anchor="middle" font-weight="600">USB charger</text>
+  <text x="115" y="356" font-size="13" text-anchor="middle" fill="#666">5 V, own socket</text>
+  <line x1="190" y1="342" x2="260" y2="342" stroke="#888" stroke-width="5"/>
+  <text x="225" y="330" font-size="12" text-anchor="middle" fill="#666">USB</text>
+
+  <!-- ESP32 DevKit -->
+  <rect x="260" y="180" width="240" height="380" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="380" y="214" font-size="17" text-anchor="middle" font-weight="600">ESP32 DevKit</text>
+  <text x="380" y="234" font-size="13" text-anchor="middle" fill="#666">WROOM-32 (or ESP32-C3)</text>
+  <circle cx="500" cy="270" r="5" fill="#000"/><text x="488" y="275" font-size="14" text-anchor="end">5V / VIN</text>
+  <circle cx="500" cy="330" r="5" fill="#000"/><text x="488" y="335" font-size="14" text-anchor="end">GND</text>
+  <circle cx="500" cy="390" r="5" fill="#000"/><text x="488" y="395" font-size="14" text-anchor="end">GPIO26</text>
+  <rect x="290" y="480" width="34" height="22" rx="4" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="336" y="496" font-size="13">BOOT — hold 2 s:</text>
+  <text x="336" y="514" font-size="13">internet back on</text>
+  <circle cx="300" cy="440" r="5" fill="#2F6FD1"/><text x="314" y="445" font-size="13" fill="#666">LED (GPIO2): on = internet cut</text>
+
+  <!-- ESP -> relay wires -->
+  <line x1="500" y1="270" x2="620" y2="270" stroke="#E07A1F" stroke-width="4"/>
+  <line x1="500" y1="330" x2="620" y2="330" stroke="#000" stroke-width="4"/>
+  <line x1="500" y1="390" x2="620" y2="390" stroke="#2F6FD1" stroke-width="4"/>
+
+  <!-- relay module -->
+  <rect x="620" y="220" width="220" height="230" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="730" y="196" font-size="17" text-anchor="middle" font-weight="600">relay module, 1 channel</text>
+  <text x="730" y="212" font-size="13" text-anchor="middle" fill="#666">5 V coil, trigger jumper on H</text>
+  <circle cx="620" cy="270" r="5" fill="#000"/><text x="632" y="275" font-size="14">VCC</text>
+  <circle cx="620" cy="330" r="5" fill="#000"/><text x="632" y="335" font-size="14">GND</text>
+  <circle cx="620" cy="390" r="5" fill="#000"/><text x="632" y="395" font-size="14">IN</text>
+  <rect x="800" y="262" width="40" height="150" fill="#F3EFF8" stroke="#7B5EA7" stroke-width="1.5"/>
+  <circle cx="840" cy="280" r="5" fill="#000"/><text x="792" y="285" font-size="14" text-anchor="end" fill="#999">NO</text>
+  <circle cx="840" cy="330" r="5" fill="#000"/><text x="792" y="335" font-size="14" text-anchor="end">COM</text>
+  <circle cx="840" cy="390" r="5" fill="#000"/><text x="792" y="395" font-size="14" text-anchor="end" font-weight="700">NC</text>
+  <text x="730" y="436" font-size="12" text-anchor="middle" fill="#666">NO stays empty</text>
+
+  <!-- router power adapter -->
+  <rect x="980" y="120" width="250" height="70" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="1105" y="150" font-size="15" text-anchor="middle" font-weight="600">router power adapter</text>
+  <text x="1105" y="172" font-size="13" text-anchor="middle" fill="#666">e.g. 12 V DC, 5.5×2.1 mm plug</text>
+  <text x="1040" y="210" font-size="14" fill="#C62828">+</text>
+  <text x="1190" y="210" font-size="14">−</text>
+
+  <!-- router -->
+  <rect x="980" y="560" width="250" height="90" fill="none" stroke="#000" stroke-width="2"/>
+  <text x="1105" y="600" font-size="15" text-anchor="middle" font-weight="600">Wi-Fi router / modem</text>
+  <text x="1105" y="622" font-size="13" text-anchor="middle" fill="#666">female 5.5×2.1 pigtail in, male out</text>
+  <text x="1040" y="552" font-size="14" fill="#C62828">+</text>
+  <text x="1190" y="552" font-size="14">−</text>
+
+  <!-- + line through COM -> NC -->
+  <polyline points="1030,190 1030,250 900,250 900,330 840,330" fill="none" stroke="#C62828" stroke-width="4"/>
+  <polyline points="840,390 900,390 900,480 1030,480 1030,560" fill="none" stroke="#C62828" stroke-width="4"/>
+  <!-- − line straight through -->
+  <line x1="1180" y1="190" x2="1180" y2="560" stroke="#000" stroke-width="4"/>
+
+  <!-- optional bypass switch across the relay -->
+  <line x1="960" y1="250" x2="960" y2="335" stroke="#7B5EA7" stroke-width="3" stroke-dasharray="7 5"/>
+  <circle cx="960" cy="340" r="5" fill="none" stroke="#7B5EA7" stroke-width="3"/>
+  <line x1="960" y1="345" x2="985" y2="392" stroke="#7B5EA7" stroke-width="3"/>
+  <circle cx="960" cy="395" r="5" fill="none" stroke="#7B5EA7" stroke-width="3"/>
+  <line x1="960" y1="400" x2="960" y2="480" stroke="#7B5EA7" stroke-width="3" stroke-dasharray="7 5"/>
+  <text x="996" y="346" font-size="13" fill="#7B5EA7">optional bypass switch</text>
+  <text x="996" y="364" font-size="13" fill="#7B5EA7">closed = internet always on</text>
+
+  <!-- legend -->
+  <line x1="40" y1="640" x2="80" y2="640" stroke="#C62828" stroke-width="4"/><text x="90" y="645" font-size="14">router DC + (through the relay)</text>
+  <line x1="40" y1="668" x2="80" y2="668" stroke="#000" stroke-width="4"/><text x="90" y="673" font-size="14">GND / DC −</text>
+  <line x1="40" y1="696" x2="80" y2="696" stroke="#E07A1F" stroke-width="4"/><text x="90" y="701" font-size="14">5 V for the relay coil</text>
+  <line x1="40" y1="724" x2="80" y2="724" stroke="#2F6FD1" stroke-width="4"/><text x="90" y="729" font-size="14">relay signal (3.3 V logic)</text>
+  <text x="420" y="645" font-size="14" font-weight="600">fail-safe: the router is fed through NC.</text>
+  <text x="420" y="667" font-size="14" fill="#444">relay off, ESP unplugged or crashed = router powered = internet on.</text>
+  <text x="420" y="695" font-size="14" fill="#444">ESP32-C3: GPIO3 instead of GPIO26, BOOT is GPIO9 (see config.example.h).</text>
+  <text x="420" y="717" font-size="14" fill="#444">power the ESP from its own charger, never from the router's USB port.</text>
+</svg>
