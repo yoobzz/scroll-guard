@@ -34,7 +34,7 @@ It cannot see your thumb moving from across the room. It detects "phone held up 
 | | |
 |---|---|
 | Camera | any IP camera with RTSP, mounted so it sees faces where you scroll (bed, sofa, desk). Tested with TP-Link Tapo (`stream1`, the full-resolution stream). |
-| Computer | runs the detection: a Mac with Apple Silicon (uses the GPU), a PC with Python 3.10+, or a Home Assistant host (add-on, CPU). |
+| Computer | runs the detection: a Mac with Apple Silicon (uses the GPU), a Linux PC with Python 3.10+, or a Home Assistant host (add-on, CPU). |
 | ESP32 + relay | ESP32 DevKit or ESP32-C3, a 1-channel 5 V relay module, two 5.5×2.1 mm DC pigtails, a USB charger. Full parts list: [docs/hardware.md](docs/hardware.md). |
 
 Without the ESP32 it still works as a counter: it shows and logs everything, it just doesn't cut anything (dry run).
@@ -69,9 +69,9 @@ arduino-cli compile --upload -p <port> --fqbn esp32:esp32:esp32 firmware/scroll_
 # ESP32-C3: --fqbn esp32:esp32:esp32c3
 ```
 
-Check it: `http://scroll-guard.local` (or the IP from your router) shows whether the internet is on or cut. `http://scroll-guard.local/ban?s=10` cuts it for 10 seconds; `/unban` brings it back at once. Holding the BOOT button for 2 s also restores it by hand.
+Check it: `http://scroll-guard.local` (or the IP from your router) shows whether the internet is on or cut. `http://scroll-guard.local/ban?s=10` cuts the router's power for 10 seconds, after which the router needs its usual 1–3 minutes to boot; `/unban` restores power at once. Holding the BOOT button for 2 s also restores it by hand.
 
-### 2. Server (Mac / Linux / Windows)
+### 2. Server (Mac / Linux)
 
 ```bash
 cd scroll_guard/app
