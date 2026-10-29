@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: Python unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scroll_guard/app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # the unit tests cover timing, tracking, geometry and integrations; they need only numpy
+      - run: pip install "numpy>=1.26"
+      - run: python -m unittest discover -s tests -v
+
+  firmware:
+    name: Firmware (${{ matrix.board }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        board: [esp32, esp32c3]
+    env:
+      ESP32_INDEX: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - run: arduino-cli core update-index --additional-urls "$ESP32_INDEX"
+      - run: arduino-cli core install esp32:esp32@3.3.3 --additional-urls "$ESP32_INDEX"
+      # without config.h the sketch builds with the placeholders from config.example.h
+      - run: arduino-cli compile --fqbn esp32:esp32:${{ matrix.board }} firmware/scroll_guard_relay
