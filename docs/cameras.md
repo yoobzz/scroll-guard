@@ -6,7 +6,7 @@ Three kinds of camera work. Detection is the same for all of them; what differs 
 |---|---|---|---|
 | Source | `rtsp://user:password@IP:554/stream1` | `http://IP:81/stream` | `laptop` |
 | Sees | the whole room from a corner | the whole room, if mounted closer | only you, sitting at the laptop |
-| Resolution | 2560×1440 (Tapo C2xx), 1920×1080 typical | up to 1600×1200 (OV2640) | 1280×720 |
+| Resolution | up to 2560×1440 on 2K models (tested: Tapo `stream1`), 1920×1080 on many | up to 1600×1200 (OV2640) | 1280×720 |
 | At night | IR night vision (detection in IR untested) | no IR, noise in low light | lit only by the screen |
 | Cost | about €25–40 | about €6–15 | free |
 | HA add-on | yes | yes | no |
@@ -82,7 +82,7 @@ The built-in camera of the computer that runs the server.
 - macOS asks for camera permission for the app that runs the server (Terminal, if you use `start.command`).
 
 **Setup**
-- On the page: More → **Laptop camera**. From the command line: `serwer.py --zrodlo laptop`.
+- On the page: More → **Laptop camera**.
 - Mac: needs ffmpeg (`brew install ffmpeg`). The built-in camera is picked by name, skipping virtual ones (OBS), iPhone Continuity Camera and Desk View. To pick a specific camera use `mac:<device name>`; list the names with `ffmpeg -f avfoundation -list_devices true -i ""`. Without ffmpeg it falls back to OpenCV's first camera, which may be a virtual one.
 - Linux: opens `/dev/video0`.
 

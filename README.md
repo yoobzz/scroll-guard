@@ -106,7 +106,7 @@ Options:
 |---|---|
 | `--port 8911` | web page port |
 | `--lan` | listen on the whole network (e.g. to look at it from your phone). There is no login, so use it only on a network you trust. |
-| `--zrodlo <src>` | override the camera: `rtsp://…` (IP camera), `http://…:81/stream` (ESP32 camera), `laptop` (built-in camera), a video or image file (loops), or a camera number like `0` |
+| `--zrodlo <src>` | override the camera: `rtsp://…` (IP camera), `http://…:81/stream` (ESP32 camera), `laptop` (built-in camera), a video or image file (loops), or a camera number like `0`. Meant for testing: once you change anything on the page, this source is saved over the camera set there. |
 | `SCROLL_GUARD_MODELE=lekkie` | env var: smaller models (`yolo26n-pose` + `yolo26s`) for slower CPUs |
 
 For the laptop camera on macOS: install ffmpeg (`brew install ffmpeg`) and allow camera access for the app that runs the server. `start.command` runs from Terminal, which usually has it.
