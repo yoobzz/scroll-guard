@@ -8,8 +8,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from detektor import (Telefon, bez_duplikatow, ocen_telefon, przypisz_telefony,  # noqa: E402
-                      rece_przy_twarzy, skala_osoby)
+from detektor import (Telefon, bez_duplikatow, bez_powtorzen_telefonow, ocen_telefon,  # noqa: E402
+                      przypisz_telefony, rece_przy_twarzy, skala_osoby)
 
 PROG = 1.9   # normalna czułość
 
@@ -52,7 +52,37 @@ class TestGeometria(unittest.TestCase):
         p = osoba(twarz=None)
         ok, powod = ocen_telefon(p, self.s, Telefon((505, 395, 535, 430), 0.8), PROG)
         self.assertFalse(ok)
-        self.assertIn("twarzy", powod)
+        self.assertIn("face", powod)
+
+    def test_glowa_ucieta_przez_kadr_telefon_w_dloni_liczy_sie(self):
+        # stoi blisko kamery: głowa nad górną krawędzią, barki przy y=100, przodem (lewy bark po prawej)
+        p = osoba(twarz=None, nadgarstek=(520, 200), barki=((560, 100), (440, 100)),
+                  biodra=((540, 320), (460, 320)))
+        s = skala_osoby(p, (400, 0, 600, 700))
+        ok, powod = ocen_telefon(p, s, Telefon((505, 180, 535, 215), 0.9), PROG)
+        self.assertTrue(ok)
+        self.assertIn("head out of frame", powod)
+
+    def test_glowa_ucieta_ale_plecami_do_kamery_nie_liczy_sie(self):
+        p = osoba(twarz=None, nadgarstek=(520, 200), barki=((440, 100), (560, 100)),
+                  biodra=((460, 320), (540, 320)))
+        s = skala_osoby(p, (400, 0, 600, 700))
+        ok, _ = ocen_telefon(p, s, Telefon((505, 180, 535, 215), 0.9), PROG)
+        self.assertFalse(ok)
+
+    def test_glowa_ucieta_telefon_na_kolanach_nie_liczy_sie(self):
+        p = osoba(twarz=None, nadgarstek=(520, 360), barki=((560, 100), (440, 100)),
+                  biodra=((540, 320), (460, 320)))
+        s = skala_osoby(p, (400, 0, 600, 700))
+        ok, _ = ocen_telefon(p, s, Telefon((505, 350, 535, 385), 0.9), PROG)
+        self.assertFalse(ok)
+
+    def test_przodem_bez_twarzy_ale_glowa_w_kadrze_nie_liczy_sie(self):
+        # pochylona głowa / twarz zasłonięta, barki głęboko w kadrze: wyjątek dla uciętej głowy nie działa
+        p = osoba(twarz=None, nadgarstek=(520, 420), barki=((560, 380), (440, 380)),
+                  biodra=((540, 600), (460, 600)))
+        ok, _ = ocen_telefon(p, self.s, Telefon((505, 395, 535, 430), 0.9), PROG)
+        self.assertFalse(ok)
 
     def test_telefon_na_biurku_daleko_od_twarzy(self):
         # dłoń na klawiaturze, telefon obok niej, ale 2.5 barku od twarzy
@@ -99,6 +129,11 @@ class TestGeometria(unittest.TestCase):
         przydzial, obok = przypisz_telefony(dane, [a, b], PROG)
         self.assertIs(przydzial[0][0], a)
         self.assertEqual(obok, [])
+
+    def test_mniejsza_ramka_w_srodku_telefonu_to_ten_sam_telefon(self):
+        # model daje czasem drugą, węższą ramkę wewnątrz tego samego telefonu (IoU tylko ~0.4)
+        a, b = Telefon((158, 558, 267, 599), 0.84), Telefon((214, 558, 266, 592), 0.80)
+        self.assertEqual(bez_powtorzen_telefonow([a, b]), [a])
 
     def test_rece_przy_twarzy(self):
         self.assertTrue(rece_przy_twarzy(self.p, self.s))

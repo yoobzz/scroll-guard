@@ -46,6 +46,8 @@ TELEFON_PRZY_UCHU = 0.5     # telefon na twarzy/przy uchu — ręka nie musi by�
 TELEFON_W_RECE = 0.7        # nadgarstek w ramce telefonu albo tuż obok
 ZAPAS_RAMKI_OSOBY = 0.20    # telefon musi leżeć w ramce osoby (z tym zapasem), żeby był „jej”
 REKA_PRZY_TWARZY = 1.4     # poza „ręce przed twarzą” (podtrzymuje stan, gdy telefon mignie)
+GLOWA_NAD_BARKAMI = 0.6     # barki bliżej górnej krawędzi kadru = twarz musi być nad kadrem
+TA_SAMA_RAMKA = 0.7         # mniejsza ramka telefonu leżąca w tej części w większej = ten sam telefon
 
 TWARZ = (0, 1, 2, 3, 4)         # nos, oczy, uszy
 OCZY = (1, 2)
@@ -133,11 +135,36 @@ def odleglosc_do_ramki(p: np.ndarray, ramka) -> float:
     return float(np.hypot(dx, dy))
 
 
+def przodem_do_kamery(punkty: np.ndarray) -> bool:
+    """Lewy bark/biodro osoby (COCO 5, 11) po prawej stronie obrazu = stoi przodem.
+
+    Wszystkie widoczne pary muszą się zgadzać; bez żadnej pary nie wiadomo, więc False.
+    """
+    pary = [(punkty[l, 0] > punkty[p, 0]) for l, p in ((5, 6), (11, 12))
+            if punkty[l, 2] >= PEWNOSC_PUNKTU and punkty[p, 2] >= PEWNOSC_PUNKTU]
+    return bool(pary) and all(pary)
+
+
+def glowa_ucieta(punkty: np.ndarray, skala: float) -> bool:
+    """Barki tuż pod górną krawędzią kadru (y=0): twarz osoby jest nad kadrem, nie odwrócona."""
+    barki = _widoczne(punkty, BARKI)
+    return bool(barki) and min(b[1] for b in barki) < GLOWA_NAD_BARKAMI * skala
+
+
+def _telefon_nad_biodrami(punkty: np.ndarray, skala: float, tel: Telefon) -> bool:
+    """Środek telefonu nad linią bioder: trzymany przed sobą, nie na kolanach ani na biurku."""
+    barki, biodra = _punkt(punkty, BARKI), _punkt(punkty, BIODRA)
+    dol = biodra[1] if biodra is not None else barki[1] + 1.5 * skala
+    return (tel.ramka[1] + tel.ramka[3]) / 2 <= dol
+
+
 def ocen_telefon(punkty: np.ndarray, skala: float, tel: Telefon, prog_twarzy: float) -> tuple[bool, str]:
     """Czy ten telefon jest trzymany/oglądany przez tę osobę.
 
     Twarz musi być widoczna: telefon przy dłoni osoby odwróconej plecami
-    to najczęściej telefon leżący na biurku obok klawiatury.
+    to najczęściej telefon leżący na biurku obok klawiatury. Wyjątek: głowa
+    ucięta górną krawędzią kadru (ktoś stoi blisko kamery) — wtedy wystarczy
+    stać przodem i trzymać telefon w dłoni nad biodrami.
     """
     twarz = _punkt(punkty, TWARZ)
     nadgarstki = _widoczne(punkty, NADGARSTKI)
@@ -146,10 +173,15 @@ def ocen_telefon(punkty: np.ndarray, skala: float, tel: Telefon, prog_twarzy: fl
 
     if d_twarz is not None and d_reka is not None:
         ok = d_twarz <= TELEFON_PRZY_UCHU or (d_reka <= TELEFON_W_RECE and d_twarz <= prog_twarzy)
-        return ok, f"reka {d_reka:.1f} twarz {d_twarz:.1f}"
+        return ok, f"hand {d_reka:.1f} face {d_twarz:.1f}"
     if d_twarz is not None:
-        return d_twarz <= TELEFON_PRZY_TWARZY_SAM, f"twarz {d_twarz:.1f}"
-    return False, "nie widac twarzy"
+        return d_twarz <= TELEFON_PRZY_TWARZY_SAM, f"face {d_twarz:.1f}"
+    if glowa_ucieta(punkty, skala) and d_reka is not None:
+        if not przodem_do_kamery(punkty):
+            return False, "head out of frame, back to camera"
+        ok = d_reka <= TELEFON_W_RECE and _telefon_nad_biodrami(punkty, skala, tel)
+        return ok, f"head out of frame, hand {d_reka:.1f}"
+    return False, "no face visible"
 
 
 def rece_przy_twarzy(punkty: np.ndarray, skala: float) -> bool:
@@ -173,11 +205,17 @@ def _w_ramce(tel: Telefon, ramka, zapas: float = ZAPAS_RAMKI_OSOBY) -> bool:
     return x1 - m <= cx <= x2 + m and y1 - m <= cy <= y2 + m
 
 
+def _ten_sam(a, b) -> bool:
+    """Ramki telefonów prawie się pokrywają albo mniejsza leży w większości w większej."""
+    mniejsze = min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]))
+    return _iou(a, b) >= 0.5 or (mniejsze > 0 and _czesc_wspolna(a, b) / mniejsze >= TA_SAMA_RAMKA)
+
+
 def bez_powtorzen_telefonow(telefony: list[Telefon]) -> list[Telefon]:
     """Ten sam telefon widziany w wycinkach dwóch osób liczy się raz (zostaje pewniejszy)."""
     zostaja: list[Telefon] = []
     for tel in sorted(telefony, key=lambda t: -t.pewnosc):
-        if all(_iou(tel.ramka, z.ramka) < 0.5 for z in zostaja):
+        if not any(_ten_sam(tel.ramka, z.ramka) for z in zostaja):
             zostaja.append(tel)
     return zostaja
 
@@ -189,7 +227,7 @@ def przypisz_telefony(osoby: list[tuple], telefony: list[Telefon], prog_twarzy: 
     Bez tego osoba siedząca blisko kamery „zabierała” telefon komuś z tyłu — w jej dużej skali
     cudzy telefon wypadał w zasięgu ręki.
     """
-    wynik: list[tuple[Telefon | None, str]] = [(None, "brak telefonu")] * len(osoby)
+    wynik: list[tuple[Telefon | None, str]] = [(None, "no phone")] * len(osoby)
     obok: list[Telefon] = []
     for tel in bez_powtorzen_telefonow(telefony):
         kandydaci, opisy = [], {}
@@ -208,7 +246,7 @@ def przypisz_telefony(osoby: list[tuple], telefony: list[Telefon], prog_twarzy: 
         obok.append(tel)
         for i, opis in opisy.items():
             if wynik[i][0] is None:
-                wynik[i] = (None, f"telefon obok ({opis})")
+                wynik[i] = (None, f"phone nearby ({opis})")
     return wynik, obok
 
 
