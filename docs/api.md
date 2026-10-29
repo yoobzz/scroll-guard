@@ -64,7 +64,7 @@ Every request needs a local `Host` header (an IP, `localhost` or `*.local`), whi
 
 | Field | Type | Range | Meaning |
 |---|---|---|---|
-| `zrodlo` | string | | camera: RTSP URL, video or image file, camera index, or `mac` |
+| `zrodlo` | string | | camera: `rtsp://…` (IP camera), `http://…` (ESP32 camera, MJPEG), `laptop` (built-in camera; `mac:<device>` picks one on a Mac), a video or image file, or a camera number |
 | `esp` | string | IP or hostname | ESP32 address. Empty = dry run. |
 | `esp_token` | string | `[A-Za-z0-9_-]{0,64}` | same as `API_TOKEN` in the firmware |
 | `limit_s` | int | 10–14400 | how long someone may scroll without a break |

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Strażnik scrollowania</title>
+<title>Scroll Guard</title>
 <style>
   :root {
     --tlo: #e8e4da; --tusz: #111; --przygaszony: #6d685e; --akcent: #111;
@@ -19,7 +19,7 @@
   #pasek { position: fixed; top: 0; left: 0; height: 6px; background: var(--tusz); width: 0; transition: width .6s linear; z-index: 5; }
 
   #slowo {
-    font: 900 clamp(36px, 13vw, 230px)/0.82 var(--gruby); letter-spacing: -0.045em;
+    font: 900 clamp(36px, 11vw, 200px)/0.84 var(--gruby); letter-spacing: -0.045em;
     text-transform: uppercase; margin: 0; padding: 28px 16px 0 2vw;
   }
   #slowo small { display: block; font: 600 clamp(14px, 1.6vw, 22px)/1.2 var(--mono); letter-spacing: 0; text-transform: none; margin-top: 18px; color: var(--przygaszony); }
@@ -38,8 +38,10 @@
     font: 600 clamp(15px, 1.5vw, 20px)/1 var(--mono); padding: 9px 12px; border: 2px solid var(--tusz);
     background: transparent; color: var(--tusz); cursor: pointer; border-radius: 0;
   }
-  .wybor button.tak { background: var(--tusz); color: var(--tlo); }
-  .wybor input { width: 4.2em; font: 600 clamp(15px, 1.5vw, 20px)/1 var(--mono); padding: 8px; border: 2px dashed var(--tusz); background: transparent; color: var(--tusz); }
+  .wybor button.tak, #kamery button.tak { background: var(--tusz); color: var(--tlo); }
+  #kamery { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  #kamera-opis { font: 13px/1.5 var(--mono); color: var(--przygaszony); margin: 0 0 8px; min-height: 1.5em; }
+  .wybor input { width: 5em; font: 600 clamp(15px, 1.5vw, 20px)/1 var(--mono); padding: 8px; border: 2px dashed var(--tusz); background: transparent; color: var(--tusz); }
   #zapis { font: 13px var(--mono); color: var(--przygaszony); min-height: 1.4em; }
 
   #wiecej { margin: 30px 2vw 60px; border-top: 2px solid var(--tusz); padding-top: 14px; max-width: 1100px; }
@@ -54,7 +56,7 @@
   #esp-info { font: 13px var(--mono); margin-top: 6px; }
 
   @media (max-width: 760px) {
-    #slowo { font-size: 11.5vw; padding-left: 16px; }
+    #slowo { font-size: 12vw; padding-left: 16px; }
     #scena { grid-template-columns: 1fr; margin-top: 16px; padding: 0 16px; }
     #zdania, #wiecej { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
     #licznik { order: 2; padding-top: 44px; }
@@ -66,41 +68,47 @@
 <body>
 <div id="pasek"></div>
 
-<h1 id="slowo">Łączę…<small id="podslowo">&nbsp;</small></h1>
+<h1 id="slowo">Connecting…<small id="podslowo">&nbsp;</small></h1>
 
 <div id="scena">
-  <div id="licznik">0:00<span>z 10:00</span></div>
-  <div id="okno"><img src="podglad.mjpg" alt="podgląd z kamery"><div class="opis" id="opis-okna"></div></div>
+  <div id="licznik">0:00<span>of 10:00</span></div>
+  <div id="okno"><img src="podglad.mjpg" alt="camera preview"><div class="opis" id="opis-okna"></div></div>
 </div>
 
 <section id="zdania">
-  <p class="zdanie">Wolno mi scrollować
+  <p class="zdanie">I may scroll for
     <span class="wybor" data-pole="limit_s" data-mnoznik="60" data-wartosci="1,3,5,10,15,30,60"></span>
-    min bez przerwy.</p>
-  <p class="zdanie">Potem internet znika na
+    min without a break.</p>
+  <p class="zdanie">Then the internet goes off for
     <span class="wybor" data-pole="kara_s" data-mnoznik="60" data-wartosci="5,10,15,30,60"></span>
     min.</p>
-  <p class="zdanie">Licznik zeruje się po przerwie
+  <p class="zdanie">The clock resets after a
     <span class="wybor" data-pole="przerwa_s" data-mnoznik="1" data-wartosci="15,30,45,90,180"></span>
-    s.</p>
-  <p class="zdanie">Patrzę
-    <span class="wybor" data-pole="czulosc" data-etykiety="ostrozna:ostrożnie,normalna:normalnie,czula:czujnie"></span>
-    i
-    <span class="wybor" data-pole="czuwanie" data-etykiety="true:odcinam,false:tylko patrzę"></span>.</p>
+    s break.</p>
+  <p class="zdanie">I watch
+    <span class="wybor" data-pole="czulosc" data-etykiety="ostrozna:cautiously,normalna:normally,czula:closely"></span>
+    and
+    <span class="wybor" data-pole="czuwanie" data-etykiety="true:cut the internet,false:only watch"></span>.</p>
   <div id="zapis"></div>
 </section>
 
 <details id="wiecej">
-  <summary>Więcej</summary>
-  <label for="zrodlo">Kamera — adres RTSP (główny strumień, np. rtsp://user:hasło@192.168.0.20:554/stream1) albo „mac” = kamera MacBooka</label>
-  <div class="rzad"><input type="text" id="zrodlo" spellcheck="false" autocomplete="off"><button data-zapisz="zrodlo">Zapisz</button></div>
-  <label for="esp">ESP z przekaźnikiem — adres IP (puste = tryb próbny, nic nie odcina)</label>
-  <div class="rzad"><input type="text" id="esp" spellcheck="false" autocomplete="off" placeholder="np. 192.168.0.50"><button data-zapisz="esp">Zapisz</button></div>
-  <label for="esp_token">Klucz ESP (API_TOKEN z config.h; puste = bez klucza)</label>
-  <div class="rzad"><input type="text" id="esp_token" spellcheck="false" autocomplete="off"><button data-zapisz="esp_token">Zapisz</button></div>
+  <summary>More</summary>
+  <label for="zrodlo">Camera</label>
+  <div id="kamery">
+    <button data-kamera="rtsp">IP camera (RTSP)</button>
+    <button data-kamera="http">ESP32 camera</button>
+    <button data-kamera="laptop">Laptop camera</button>
+  </div>
+  <p id="kamera-opis"></p>
+  <div class="rzad"><input type="text" id="zrodlo" spellcheck="false" autocomplete="off"><button data-zapisz="zrodlo">Save</button></div>
+  <label for="esp">ESP32 relay: IP address or name (empty = dry run, nothing gets cut)</label>
+  <div class="rzad"><input type="text" id="esp" spellcheck="false" autocomplete="off" placeholder="e.g. 192.168.0.50 or scroll-guard.local"><button data-zapisz="esp">Save</button></div>
+  <label for="esp_token">ESP32 key (API_TOKEN from config.h; empty = no key)</label>
+  <div class="rzad"><input type="text" id="esp_token" spellcheck="false" autocomplete="off"><button data-zapisz="esp_token">Save</button></div>
   <div id="esp-info"></div>
-  <label>Sprawdzenie przekaźnika</label>
-  <button id="test">Odetnij na 20 s (router wstaje potem 1–3 min)</button>
+  <label>Relay check</label>
+  <button id="test">Cut for 20 s (the router then needs 1–3 min to boot)</button>
   <div id="diag"></div>
 </details>
 
@@ -115,14 +123,14 @@ const mmss = (s) => {
 };
 
 async function zapisz(zmiany) {
-  $("#zapis").textContent = "zapisuję…";
+  $("#zapis").textContent = "saving…";
   try {
     const r = await fetch("api/ustawienia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(zmiany) });
     const d = await r.json();
     if (!r.ok) throw new Error(d.blad || r.status);
     ust = d; rysujWybory();
-    $("#zapis").textContent = "zapisane";
-  } catch (e) { $("#zapis").textContent = "nie zapisano: " + e.message; }
+    $("#zapis").textContent = "saved";
+  } catch (e) { $("#zapis").textContent = "not saved: " + e.message; }
 }
 
 function rysujWybory() {
@@ -150,14 +158,15 @@ function rysujWybory() {
       el.append(b);
     });
     const inp = document.createElement("input");
-    inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.placeholder = "inne";
-    inp.title = "własna wartość, Enter zapisuje";
+    inp.type = "number"; inp.min = "0"; inp.step = "any"; inp.placeholder = "other";
+    inp.title = "your own value, Enter saves";
     if (!trafiony) inp.value = +(akt / mn).toFixed(2);
     inp.onkeydown = (e) => { if (e.key === "Enter" && inp.value) zapisz({ [pole]: Math.round(+inp.value * mn) }); };
     inp.onchange = () => { if (inp.value) zapisz({ [pole]: Math.round(+inp.value * mn) }); };
     el.append(inp);
   });
   if (document.activeElement !== $("#zrodlo")) $("#zrodlo").value = ust.zrodlo;
+  rysujKamery(rodzaj(ust.zrodlo));
   if (document.activeElement !== $("#esp")) $("#esp").value = ust.esp;
   if (document.activeElement !== $("#esp_token")) $("#esp_token").value = ust.esp_token;
 }
@@ -165,8 +174,40 @@ function rysujWybory() {
 document.querySelectorAll("[data-zapisz]").forEach((b) => {
   b.onclick = () => zapisz({ [b.dataset.zapisz]: $("#" + b.dataset.zapisz).value });
 });
+// gotowce kamer: wzór adresu z zaznaczonym miejscem do wpisania, laptop zapisuje się od razu
+const KAMERY = {
+  rtsp: { wzor: "rtsp://user:password@192.168.0.20:554/stream1", zaznacz: "user:password@192.168.0.20",
+          opis: "Main (full resolution) stream of an IP camera, e.g. TP-Link Tapo. Fill in the login, password and IP, then Save." },
+  http: { wzor: "http://192.168.0.60:81/stream", zaznacz: "192.168.0.60",
+          opis: "ESP32-CAM or XIAO ESP32S3 Sense running the CameraWebServer example. Type its IP, then Save." },
+  laptop: { opis: "The built-in camera of the computer this runs on. It only sees you while you sit at it." },
+};
+const rodzaj = (z) => {
+  z = (z || "").trim().toLowerCase();
+  return !z ? "" : z === "laptop" || z === "mac" || z.startsWith("mac:") ? "laptop"
+    : z.startsWith("rtsp") ? "rtsp" : z.startsWith("http") ? "http" : "inne";
+};
+function rysujKamery(wybrany) {
+  document.querySelectorAll("[data-kamera]").forEach((b) => b.classList.toggle("tak", b.dataset.kamera === wybrany));
+  $("#kamera-opis").textContent = KAMERY[wybrany]?.opis || "Or a video file, an image file, or a camera number like 0.";
+}
+if (location.pathname.includes("hassio_ingress")) $('[data-kamera="laptop"]').remove();   // add-on: brak laptopa
+document.querySelectorAll("[data-kamera]").forEach((b) => {
+  b.onclick = () => {
+    const k = b.dataset.kamera, pole = $("#zrodlo");
+    if (k === "laptop") return zapisz({ zrodlo: "laptop" });
+    rysujKamery(k);
+    if (rodzaj(pole.value) !== k) {
+      pole.value = KAMERY[k].wzor;
+      const od = pole.value.indexOf(KAMERY[k].zaznacz);
+      pole.focus();
+      pole.setSelectionRange(od, od + KAMERY[k].zaznacz.length);
+    } else pole.focus();
+  };
+});
+
 $("#test").onclick = async () => {
-  if (!confirm("Odciąć prąd routera na 20 sekund?")) return;
+  if (!confirm("Cut the router's power for 20 seconds?")) return;
   await fetch("api/test-odciecia", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
 };
 
@@ -176,31 +217,31 @@ function rysujStan(s) {
   if (pierwszy) rysujWybory();
   const kara = s.kara_zostalo_s > 0;
   document.documentElement.className = kara ? "kara" : s.scrolluje ? "scrolluje" : "";
-  const slowo = kara ? "Internet odcięty" : s.scrolluje ? "Scrollujesz" : !s.obraz_ok ? "Nie widzę" : "Nie scrollujesz";
-  const pod = kara ? "wraca za " + mmss(s.kara_zostalo_s) + " (router potrzebuje jeszcze chwili, żeby wstać)"
+  const slowo = kara ? "Internet's off" : s.scrolluje ? "You're doom scrolling" : !s.obraz_ok ? "No picture" : "Not scrolling";
+  const pod = kara ? "back in " + mmss(s.kara_zostalo_s) + " (then the router needs a minute or two to boot)"
     : !s.obraz_ok ? s.kamera
-    : s.scrolluje ? "telefon w ręce — licznik idzie"
-    : s.seria_s > 0 ? "przerwa " + mmss(s.przerwa_s) + " z " + mmss(ust.przerwa_s) + " — potem licznik od zera"
-    : !ust.czuwanie ? "tylko patrzę, nic nie odcinam" : " ";
+    : s.scrolluje ? "phone in hand, the clock is running"
+    : s.seria_s > 0 ? "break " + mmss(s.przerwa_s) + " of " + mmss(ust.przerwa_s) + ", then the clock starts over"
+    : !ust.czuwanie ? "only watching, nothing gets cut" : " ";
   $("#slowo").firstChild.textContent = slowo;
   $("#podslowo").textContent = pod;
   $("#licznik").firstChild.textContent = mmss(s.seria_s);
-  $("#licznik span").textContent = "z " + mmss(ust.limit_s);
+  $("#licznik span").textContent = "of " + mmss(ust.limit_s);
   $("#pasek").style.width = kara ? "100%" : Math.min(100, (100 * s.seria_s) / ust.limit_s) + "%";
   $("#opis-okna").textContent = s.obraz_ok && !kara
-    ?`osoby: ${s.osoby}   telefon: ${s.telefon === null ? "—" : s.telefon}   klatki z telefonem: ${Math.round(s.udzial * 100)}%`
+    ? `people: ${s.osoby}   phone: ${s.telefon === null ? "—" : s.telefon}   frames with a phone: ${Math.round(s.udzial * 100)}%`
     : "";
   const o = s.odciecie || {};
   const e = o.esp || {};
-  const espStan = !ust.esp ? "" : e.online === undefined ? " (sprawdzam…)"
-    : !e.online ? " — nie odpowiada" : e.banned ? ` — internet odcięty, jeszcze ${mmss(e.remaining_s)}` : " — online";
-  $("#esp-info").textContent = (ust.esp ? "ESP: " + ust.esp + espStan : "ESP nie ustawione — tryb próbny")
-    + (o.co ? `   ostatnio: ${o.co} — ${o.wynik}` : "");
+  const espStan = !ust.esp ? "" : e.online === undefined ? " (checking…)"
+    : !e.online ? ": not responding" : e.banned ? `: internet cut, ${mmss(e.remaining_s)} left` : ": online";
+  $("#esp-info").textContent = (ust.esp ? "ESP32 " + ust.esp + espStan : "No ESP32 set: dry run")
+    + (o.co ? `   last: ${o.co}, ${o.wynik}` : "");
   $("#diag").textContent = [
-    "kamera: " + s.kamera,
-    "analiza klatki: " + (s.analiza_ms ?? "—") + " ms",
-    "osoby: " + (s.powody.join(" | ") || "—"),
-    s.blad ? "błąd: " + s.blad : "",
+    "camera: " + s.kamera,
+    "frame analysis: " + (s.analiza_ms ?? "—") + " ms",
+    "people: " + (s.powody.join(" | ") || "—"),
+    s.blad ? "error: " + s.blad : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -209,8 +250,8 @@ async function petla() {
     const r = await fetch("api/stan", { cache: "no-store" });
     rysujStan(await r.json());
   } catch (e) {
-    $("#slowo").firstChild.textContent = "Brak serwera";
-    $("#podslowo").textContent = "uruchom start.command";
+    $("#slowo").firstChild.textContent = "Server's down";
+    $("#podslowo").textContent = "start it again (start.command, or restart the add-on)";
   }
   setTimeout(petla, 700);
 }

@@ -31,7 +31,7 @@ class TestEsp(unittest.TestCase):
 
 class TestHomeAssistant(unittest.TestCase):
     def test_opcje_addonu_na_ustawienia(self):
-        dane = z_opcji_ha({"rtsp_url": "rtsp://u:p@10.0.0.9:554/stream1", "esp_host": "", "esp_token": "",
+        dane = z_opcji_ha({"camera_url": "rtsp://u:p@10.0.0.9:554/stream1", "esp_host": "", "esp_token": "",
                            "limit_minutes": 15, "ban_minutes": 30, "break_seconds": 60,
                            "sensitivity": "sensitive", "enforce": False})
         u = zastosuj(Ustawienia(esp="10.0.0.2"), dane)
@@ -40,6 +40,11 @@ class TestHomeAssistant(unittest.TestCase):
         self.assertEqual((u.limit_s, u.kara_s, u.przerwa_s), (900, 1800, 60))
         self.assertEqual(u.czulosc, "czula")
         self.assertFalse(u.czuwanie)
+
+    def test_stara_opcja_rtsp_url_dalej_dziala(self):
+        self.assertEqual(z_opcji_ha({"rtsp_url": "rtsp://u:p@10.0.0.9/s1"})["zrodlo"], "rtsp://u:p@10.0.0.9/s1")
+        self.assertEqual(z_opcji_ha({"camera_url": "http://10.0.0.7:81/stream", "rtsp_url": "rtsp://x/y"})["zrodlo"],
+                         "http://10.0.0.7:81/stream")
 
     def test_encje(self):
         stan = {"scrolluje": True, "kara_zostalo_s": 0, "seria_s": 125.7, "osoby": 2,

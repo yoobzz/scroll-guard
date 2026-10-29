@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- The page and the preview are in English: "You're doom scrolling", "DOOM SCROLLING" / "NOT SCROLLING" over each person, with their own timer underneath.
+- Option `rtsp_url` is now `camera_url` and also takes an ESP32 camera stream (`http://<ip>:81/stream` from the CameraWebServer example). The old name still works.
+- Camera buttons in More: IP camera, ESP32 camera, and (outside the add-on) the laptop camera.
+- Someone whose head is cut off by the top of the frame now counts when they face the camera with a phone in hand above the hips. Before, the missing face always ruled them out.
+- A phone seen as two overlapping boxes is counted once (no stray grey box).
+
 ## 0.1.0
 
 First release.

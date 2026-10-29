@@ -42,10 +42,10 @@ class Odcinacz:
             return {**self._ostatnio, "esp": dict(self._esp)}
 
     def odetnij(self, esp: str, sekundy: int, token: str = "") -> None:
-        self._w_tle(adres(esp, "/ban", token, s=int(sekundy)) if esp else "", f"odcięcie na {int(sekundy)} s")
+        self._w_tle(adres(esp, "/ban", token, s=int(sekundy)) if esp else "", f"cut for {int(sekundy)} s")
 
     def przywroc(self, esp: str, token: str = "") -> None:
-        self._w_tle(adres(esp, "/unban", token) if esp else "", "przywrócenie")
+        self._w_tle(adres(esp, "/unban", token) if esp else "", "restore")
 
     def pilnuj_statusu(self, pobierz_esp) -> None:
         """Wątek w tle: co 30 s pyta ESP o stan (pobierz_esp() -> adres albo "")."""
@@ -74,24 +74,24 @@ class Odcinacz:
     def _zapisz(self, opis: str, wynik: str, ok: bool) -> None:
         with self._lock:
             self._ostatnio = {"co": opis, "wynik": wynik, "ok": ok, "kiedy": time.time()}
-        print(f"[odcinacz] {opis}: {wynik}", flush=True)
+        print(f"[relay] {opis}: {wynik}", flush=True)
 
     def _wyslij(self, url: str, opis: str) -> None:
         if not url:
-            self._zapisz(opis, "tryb próbny — brak adresu ESP, nic nie odcięto", False)
+            self._zapisz(opis, "dry run: no ESP address, nothing was cut", False)
             return
         ostatni_blad = ""
         for proba in range(1, PROBY + 1):
             try:
                 with urllib.request.urlopen(url, timeout=LIMIT_S) as odp:
                     tresc = odp.read(300).decode("utf-8", "replace").strip()
-                self._zapisz(opis, f"ESP odpowiedział: {tresc or odp.status}", True)
+                self._zapisz(opis, f"ESP replied: {tresc or odp.status}", True)
                 return
             except urllib.error.HTTPError as blad:
-                ostatni_blad = "zły klucz ESP" if blad.code == 403 else f"HTTP {blad.code}"
+                ostatni_blad = "wrong ESP key" if blad.code == 403 else f"HTTP {blad.code}"
                 break                                  # ESP odpowiedział — ponawianie nic nie da
             except (urllib.error.URLError, OSError) as blad:
                 ostatni_blad = str(getattr(blad, "reason", blad))
                 if proba < PROBY:
                     time.sleep(ODSTEP_PROB_S)
-        self._zapisz(opis, f"ESP nie przyjął polecenia ({ostatni_blad})", False)
+        self._zapisz(opis, f"ESP did not take the command ({ostatni_blad})", False)

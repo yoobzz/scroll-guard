@@ -79,7 +79,7 @@ class HomeAssistant:
             return True
         except (urllib.error.URLError, OSError) as blad:
             if not self._blad_zgloszony:
-                print(f"[ha] Home Assistant nie przyjął danych: {blad}", flush=True)
+                print(f"[ha] Home Assistant did not accept the data: {blad}", flush=True)
                 self._blad_zgloszony = True
             return False
 

@@ -55,7 +55,7 @@ def zbuduj_obsluge(straznik: Straznik, ingress: bool = False):
 
         def do_GET(self):  # noqa: N802
             if not self._host_ok():
-                return self._json(403, {"blad": "zły nagłówek Host"})
+                return self._json(403, {"blad": "bad Host header"})
             sciezka = self.path.split("?")[0]
             if sciezka == "/":
                 return self._wyslij(200, STRONA.read_bytes(), "text/html; charset=utf-8")
@@ -68,14 +68,14 @@ def zbuduj_obsluge(straznik: Straznik, ingress: bool = False):
         def do_POST(self):  # noqa: N802
             # tylko application/json: przeglądarka nie wyśle tego z obcej strony bez CORS
             if not self._host_ok() or "application/json" not in self.headers.get("Content-Type", ""):
-                return self._json(403, {"blad": "odrzucone"})
+                return self._json(403, {"blad": "rejected"})
             dlugosc = int(self.headers.get("Content-Length") or 0)
             if dlugosc > MAKS_CIALO:
-                return self._json(413, {"blad": "za duże"})
+                return self._json(413, {"blad": "too large"})
             try:
                 dane = json.loads(self.rfile.read(dlugosc) or b"{}")
             except json.JSONDecodeError:
-                return self._json(400, {"blad": "to nie jest JSON"})
+                return self._json(400, {"blad": "not JSON"})
             if self.path == "/api/ustawienia":
                 try:
                     nowe = straznik.zmien_ustawienia(dane)
@@ -109,12 +109,12 @@ def zbuduj_obsluge(straznik: Straznik, ingress: bool = False):
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Strażnik scrollowania")
+    p = argparse.ArgumentParser(description="Scroll Guard")
     p.add_argument("--port", type=int, default=PORT)
-    p.add_argument("--lan", action="store_true", help="pokaż stronę też innym w sieci (np. z telefonu)")
-    p.add_argument("--zrodlo", help="nadpisz źródło obrazu (rtsp://..., plik, mac = kamera Maca)")
-    p.add_argument("--opcje", type=Path, help="opcje add-onu Home Assistanta (/data/options.json)")
-    p.add_argument("--ingress", action="store_true", help="tryb add-onu: słuchaj na 0.0.0.0, wpuszczaj tylko ingress HA")
+    p.add_argument("--lan", action="store_true", help="serve the page to the whole network (e.g. for your phone); no password")
+    p.add_argument("--zrodlo", help="override the camera: rtsp://… (IP camera), http://… (ESP32 camera), laptop, a file or a camera number")
+    p.add_argument("--opcje", type=Path, help="Home Assistant add-on options (/data/options.json)")
+    p.add_argument("--ingress", action="store_true", help="add-on mode: listen on 0.0.0.0, accept only HA ingress")
     a = p.parse_args()
 
     ust = U.wczytaj()
@@ -123,14 +123,14 @@ def main() -> int:
         U.zapisz(ust)
     if a.zrodlo:
         ust = U.zastosuj(ust, {"zrodlo": a.zrodlo})
-    print("[serwer] ładuję modele…", flush=True)
+    print("[server] loading models…", flush=True)
     modele = Path(os.environ.get("SCROLL_GUARD_MODELS") or KATALOG / "modele")
     straznik = Straznik(ust, Detektor(modele))
     straznik.start()
     adres = "0.0.0.0" if (a.lan or a.ingress) else "127.0.0.1"
     serwer = ThreadingHTTPServer((adres, a.port), zbuduj_obsluge(straznik, ingress=a.ingress))
     serwer.daemon_threads = True
-    print(f"[serwer] strona: http://127.0.0.1:{a.port}", flush=True)
+    print(f"[server] page: http://127.0.0.1:{a.port}", flush=True)
     try:
         serwer.serve_forever()
     except KeyboardInterrupt:

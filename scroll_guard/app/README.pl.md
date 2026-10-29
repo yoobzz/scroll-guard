@@ -13,7 +13,7 @@ python3 -m venv .venv
 
 Modele YOLO26 pobierają się same przy pierwszym starcie do `modele/`.
 
-Strona: http://127.0.0.1:8911. Adres RTSP kamery wpisujesz w WIĘCEJ. Bierz główny
+Strona: http://127.0.0.1:8911 (po angielsku). Kamerę wybierasz w More: kamera IP (RTSP), ESP32 z kamerą albo kamera laptopa (docs/cameras.md). Przy kamerze IP bierz główny
 strumień w pełnej rozdzielczości (w Tapo `stream1`), bo z daleka telefon ma kilkadziesiąt pikseli.
 Podgląd z telefonu w tej samej sieci: `./start.command --lan`, potem http://<IP-maca>:8911.
 

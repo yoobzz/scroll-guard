@@ -1,9 +1,11 @@
 configuration:
-  rtsp_url:
-    name: Camera RTSP URL
+  camera_url:
+    name: Camera URL
     description: >-
-      Main (full resolution) stream of the room camera, e.g.
+      IP camera: its main (full resolution) RTSP stream, e.g.
       rtsp://user:password@192.168.0.20:554/stream1 for TP-Link Tapo.
+      ESP32 camera (ESP32-CAM, XIAO ESP32S3 Sense with the CameraWebServer example):
+      http://192.168.0.60:81/stream.
   esp_host:
     name: ESP32 relay address
     description: IP or host name of the relay board (e.g. scroll-guard.local). Empty = dry run, nothing is cut.
@@ -28,4 +30,4 @@ configuration:
     name: Model size
     description: >-
       light = yolo26n-pose + yolo26s, for mini PCs; full = yolo26m models, needs a fast CPU.
-      Each frame must be analysed in under about 4 s (shown under the preview).
+      Each frame must be analysed in under about 4 s ("frame analysis" under the preview, in More).

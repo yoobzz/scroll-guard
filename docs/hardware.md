@@ -15,7 +15,7 @@ The relay board sits between the router and its power adapter and opens the rout
 | 5 | USB charger + cable | 5 V, 1 A or more; micro-USB or USB-C to match the board | 1 | The ESP32 must **not** be powered from the router (it would switch itself off). |
 | 6 | Bypass switch *(optional)* | SPST toggle, rated above the router's current (3 A is plenty for most) | 1 | Wired across the relay contacts: closed = internet always on. |
 | 7 | Small parts *(optional)* | lever connectors (Wago 221) or a screw terminal block, heat-shrink, a small enclosure | – | For the DC minus line and to keep things tidy. |
-| 8 | Camera | IP camera with RTSP | 1 | Tested: TP-Link Tapo (`stream1`). It must see faces where you scroll. |
+| 8 | Camera | IP camera with RTSP, **or** an ESP32 camera board (ESP32-CAM / XIAO ESP32S3 Sense), **or** the laptop's own camera | 1 | Tested: TP-Link Tapo (`stream1`). It must see faces where you scroll. Comparison: [cameras.md](cameras.md). |
 | – | Tools | small screwdriver, multimeter | – | The multimeter is for checking the polarity of the DC plug. |
 
 The router's own power adapter stays as it is. Typical routers take 12 V at 1–2 A, well inside the relay's rating.
@@ -79,7 +79,7 @@ All of these can be changed in `config.h`. Avoid the strapping pins (ESP32: 0, 2
 - The ESP32 owns the ban timer. When the router goes off, Wi-Fi goes with it and nothing can reach the ESP32 until the ban is over, so it switches the relay back by itself.
 - `MAX_BAN_SECONDS` (default 4 h) caps every ban, whatever the server asks for.
 - A new `/ban` never shortens a running ban. It only extends it.
-- `API_TOKEN` (optional): when set, `/ban` and `/unban` need `?key=<token>`. Put the same value into the web page (WIĘCEJ → ESP key) or the add-on's options.
+- `API_TOKEN` (optional): when set, `/ban` and `/unban` need `?key=<token>`. Put the same value into the web page (More → ESP32 key) or the add-on's options.
 - The board answers on `http://scroll-guard.local` (mDNS) and reconnects to Wi-Fi on its own after the router comes back.
 
 ## Without the ESP32

@@ -1,4 +1,4 @@
-"""Nakładka na podgląd: ramka wokół osoby z napisem SCROLLUJE / NIE SCROLLUJE."""
+"""Nakładka na podgląd: ramka wokół osoby z napisem DOOM SCROLLING / NOT SCROLLING."""
 from __future__ import annotations
 
 import cv2
@@ -10,18 +10,29 @@ CZERWONY = (40, 40, 230)
 ZIELONY = (90, 200, 60)
 ZOLTY = (0, 220, 255)
 SZARY = (150, 150, 150)
-FONT = cv2.FONT_HERSHEY_DUPLEX   # bez polskich znaków — napisy ASCII
+FONT = cv2.FONT_HERSHEY_DUPLEX   # tylko ASCII
+TAK, NIE = "DOOM SCROLLING", "NOT SCROLLING"
+NAJMNIEJSZA_SKALA = 0.35
 
 
 def _grubosc(klatka: np.ndarray) -> int:
     return max(2, klatka.shape[1] // 640)
 
 
-def _napis(obraz, tekst: str, x: int, y: int, kolor, skala: float, grub: int) -> None:
+def _zmiesc(tekst: str, skala: float, grub: int, szerokosc: int) -> float:
+    """Zmniejsza napis, aż zmieści się w szerokości ramki osoby (z marginesem 10 px)."""
+    while skala > NAJMNIEJSZA_SKALA and cv2.getTextSize(tekst, FONT, skala, grub)[0][0] + 10 > szerokosc:
+        skala *= 0.9
+    return skala
+
+
+def _napis(obraz, tekst: str, x: int, y: int, kolor, skala: float, grub: int) -> int:
+    """Plakietka z tekstem; zwraca y jej dolnej krawędzi (po przesunięciu w kadr)."""
     (w, h), base = cv2.getTextSize(tekst, FONT, skala, grub)
     y = max(y, h + base + 4)
     cv2.rectangle(obraz, (x, y - h - base - 6), (x + w + 10, y + 2), kolor, -1)
     cv2.putText(obraz, tekst, (x + 5, y - base - 2), FONT, skala, (255, 255, 255), grub, cv2.LINE_AA)
+    return y
 
 
 def rysuj_wynik(klatka: np.ndarray, wynik: Wynik | None, etykiety: list[tuple[bool, str]] | None = None,
@@ -42,10 +53,13 @@ def rysuj_wynik(klatka: np.ndarray, wynik: Wynik | None, etykiety: list[tuple[bo
             kolor = CZERWONY if tak else ZIELONY
             x1, y1, x2, y2 = osoba.ramka
             cv2.rectangle(obraz, (x1, y1), (x2, y2), kolor, g + 1)
-            tekst = "SCROLLUJE" if tak else "NIE SCROLLUJE"
-            if tak and licznik:
-                tekst += f"  {licznik}"
-            _napis(obraz, tekst, x1, y1 - 4, kolor, skala_tekstu, max(1, g // 2 + 1))
+            grub = max(1, g // 2 + 1)
+            glowny = TAK if tak else NIE
+            skala = _zmiesc(glowny, skala_tekstu, grub, x2 - x1)
+            dol = _napis(obraz, glowny, x1, y1 - 4, kolor, skala, grub)
+            if tak and licznik:      # licznik tej osoby: druga plakietka tuż pod napisem
+                (_, h), base = cv2.getTextSize(licznik, FONT, skala, grub)
+                _napis(obraz, licznik, x1, dol + h + base + 8, kolor, skala, grub)
         for tel in wynik.telefony_obok:
             cv2.rectangle(obraz, tel.ramka[:2], tel.ramka[2:], SZARY, max(1, g // 2))
         for osoba in wynik.osoby:

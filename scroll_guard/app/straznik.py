@@ -94,7 +94,7 @@ class Straznik:
             except Exception as blad:  # noqa: BLE001 — pętla musi żyć dalej
                 traceback.print_exc()
                 with self._lock:
-                    self._blad = f"analiza: {type(blad).__name__}: {blad}"
+                    self._blad = f"analysis: {type(blad).__name__}: {blad}"
                 time.sleep(1.0)
                 continue
             osoby = [OsobaWKlatce(o.ramka, o.z_telefonem, o.rece_twarz) for o in wynik.osoby]
@@ -103,7 +103,7 @@ class Straznik:
                 self._sledz = krok_sledzenia(self._sledz, osoby, time.time(), ust)
                 odpal = self._sledz.odpal
             if odpal:
-                print(f"[straznik] limit {mmss(ust.limit_s)} przekroczony — kara {mmss(ust.kara_s)}", flush=True)
+                print(f"[guard] limit {mmss(ust.limit_s)} reached, cutting the internet for {mmss(ust.kara_s)}", flush=True)
                 self.odcinacz.odetnij(ust.esp, ust.kara_s, ust.esp_token)
                 self.ha.zdarzenie_odciecia(ust.kara_s)
             time.sleep(max(0.0, 1.0 / ANALIZ_NA_S - (time.time() - start)))
@@ -114,14 +114,14 @@ class Straznik:
         with self._lock:
             sledz, wynik, ust = self._sledz, self._wynik, self._ust
         if sledz.kara_zostalo(teraz) > 0:
-            return _plansza("INTERNET ODCIETY", f"wraca za {mmss(sledz.kara_zostalo(teraz))}")
+            return _plansza("INTERNET IS OFF", f"back in {mmss(sledz.kara_zostalo(teraz))}")
         if klatka is None or teraz - t_klatki > KLATKA_STARA_S:
-            return _plansza("BRAK OBRAZU", "szczegoly na stronie")
+            return _plansza("NO PICTURE", "details on the page")
         etykiety = []
         for id_ in sledz.przypisanie:
             slad = sledz.slad(id_)
             o = slad.ocena if slad else Ocena()
-            etykiety.append((o.scrolluje, f"{mmss(o.seria_s)} / {mmss(ust.limit_s)}"))
+            etykiety.append((o.scrolluje, f"{mmss(o.seria_s)}/{mmss(ust.limit_s)}"))
         obraz = rysuj_wynik(klatka, wynik, etykiety)
         s = PODGLAD_SZER / obraz.shape[1]
         return cv2.resize(obraz, None, fx=s, fy=s, interpolation=cv2.INTER_AREA) if s < 1 else obraz
